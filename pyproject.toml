@@ -1,0 +1,55 @@
+[project]
+name = "finance-research-swarm-portal"
+version = "0.1.0"
+description = "Hands-on Strands Agents workshop — AWS Community Day edition"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "boto3>=1.43.98",
+    "faiss-cpu>=1.15.1",
+    "fastapi>=0.115.0",
+    "mcp<2",
+    "mem0ai<2.0",
+    "ollama>=0.6.2",
+    "strands-agents[a2a]>=1.56.0",
+    "strands-agents-tools>=0.8.9",
+    "uvicorn[standard]>=0.32.0",
+    "yfinance>=0.2.51",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "nbclient>=0.11.0",
+    "nbformat>=5.11.1",
+    "pytest>=9.1.1",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# BLE001 (blind except) disabled: model_provider.get_model() intentionally
+# catches broad exceptions to fall back from Ollama to Bedrock — any
+# failure mode there should trigger the fallback, not just specific ones.
+ignore = ["BLE001"]
+
+[tool.ruff.lint.per-file-ignores]
+# I001 (import sort) disagrees between platforms for these three files —
+# passes clean on Windows dev machines but fails on GitHub Actions'
+# Linux runners with the identical committed content and locked ruff
+# version. Root cause not isolated (not __pycache__ state, not isort's
+# known-first-party config, not a stray ruff.toml — all ruled out).
+# Ignoring I001 here only, rather than weakening it repo-wide, until the
+# platform difference is understood.
+"backend/agents.py" = ["I001"]
+"backend/main.py" = ["I001"]
+"backend/test_research.py" = ["I001"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend"]
+# backend/*.py import sibling modules directly (agents,
+# auth, progress, schemas, tools) — same pattern the uvicorn --app-dir run
+# uses. rootdir insertion lets pytest find them without a package install.
+pythonpath = ["backend"]
